@@ -57,12 +57,6 @@ Groq (Llama 3.3 70B) powers two reasoning tasks:
 - Comparing a user's claimed payment text against actual PayPal order data, returning a verified/flagged verdict with reasoning.
 - Scoring counterparty risk from available signals (account age, prior transaction history) before a payment is sent.
 
-## Demo flow (for video)
-
-1. Show Verification Shield: paste a fake claim against a real sandbox order → AI flags the mismatch.
-2. Show Trust Score: enter a brand-new counterparty email with no history → AI returns high risk with reasoning.
-3. Show Subscription Radar: pull sandbox transaction history → recurring merchants surface automatically.
-
 ## License
 
 MIT
