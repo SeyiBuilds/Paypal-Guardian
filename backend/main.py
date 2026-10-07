@@ -9,10 +9,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from dotenv import load_dotenv
 
-import paypal_client
-import ai_engine
-
 load_dotenv()
+
+import paypal_client  # noqa: E402 (env must load first)
+import ai_engine  # noqa: E402
 
 app = FastAPI(title="PayPal Guardian API")
 
