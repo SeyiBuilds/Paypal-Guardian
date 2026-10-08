@@ -16,7 +16,7 @@ export default function SubscriptionRadar() {
 
   return (
     <div className="panel">
-      <h2>📡 Subscription Radar</h2>
+      <h2>Subscription Radar</h2>
       <p className="subtitle">Recurring charges detected in your PayPal history (90 days)</p>
 
       {loading && <div className="muted">Scanning...</div>}

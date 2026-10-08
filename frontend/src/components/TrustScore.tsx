@@ -29,7 +29,7 @@ export default function TrustScore() {
 
   return (
     <div className="panel">
-      <h2>🔍 Pre-Payment Trust Score</h2>
+      <h2>Pre-Payment Trust Score</h2>
       <p className="subtitle">Check risk before sending money to a new counterparty</p>
 
       <input

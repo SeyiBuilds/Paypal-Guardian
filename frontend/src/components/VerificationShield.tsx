@@ -23,7 +23,7 @@ export default function VerificationShield() {
 
   return (
     <div className="panel">
-      <h2>🛡️ Verification Shield</h2>
+      <h2>Verification Shield</h2>
       <p className="subtitle">Paste a claimed payment, we check it against real PayPal data</p>
 
       <input
@@ -46,7 +46,7 @@ export default function VerificationShield() {
       {result && (
         <div className={`result-card ${result.result.verified ? "verified" : "flagged"}`}>
           <div className="result-header">
-            {result.result.verified ? "✅ Verified" : "🚩 Flagged"}
+            {result.result.verified ? "Verified" : "Flagged"}
             <span className="confidence">confidence: {result.result.confidence}</span>
           </div>
           <p>{result.result.reasoning}</p>
