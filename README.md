@@ -12,7 +12,7 @@ Guardian runs on live PayPal sandbox data and answers three questions people wor
 
 The backend fetches the real order from PayPal first, and the model only reasons over that retrieved data.
 
-**Stack:** FastAPI + httpx (Python 3.10+), React + TypeScript + Vite, Groq (`openai/gpt-oss-120b` by default), PayPal REST sandbox.
+**Stack:** FastAPI + httpx (Python 3.10+), React + TypeScript + Vite + Tailwind CSS + shadcn/ui, Groq (`openai/gpt-oss-120b` by default), PayPal REST sandbox.
 
 ## Quick start
 
