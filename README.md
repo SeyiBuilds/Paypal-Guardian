@@ -98,7 +98,7 @@ Use the order IDs from the seed script.
 
 **Pre-Payment Trust Score**
 
-| Email | Account age | Prior txns | Expected |
+| Email | Account age | Transactions | Expected |
 | --- | --- | --- | --- |
 | `newseller123@gmail.com` | `2 days` | `0` | High risk |
 | `client@example.com` | `3 years` | `12` | Low or medium risk |

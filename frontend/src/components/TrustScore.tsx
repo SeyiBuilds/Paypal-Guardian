@@ -72,7 +72,7 @@ export default function TrustScore() {
             <Input id="age" placeholder="2 weeks" value={accountAge} onChange={(e) => setAccountAge(e.target.value)} />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="txns">Prior txns</Label>
+            <Label htmlFor="txns">Transactions</Label>
             <Input id="txns" placeholder="0" value={priorTxns} onChange={(e) => setPriorTxns(e.target.value)} />
           </div>
         </div>
