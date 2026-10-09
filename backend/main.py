@@ -48,7 +48,10 @@ async def verify_claim(req: VerifyClaimRequest):
     except Exception as e:
         raise HTTPException(status_code=404, detail=f"Order not found in PayPal: {e}")
 
-    result = ai_engine.verify_payment_claim(req.claimed_text, actual)
+    try:
+        result = ai_engine.verify_payment_claim(req.claimed_text, actual)
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"AI error: {e}")
     entry = {
         "order_id": req.order_id,
         "claimed_text": req.claimed_text,
@@ -112,7 +115,10 @@ async def trust_score(req: TrustScoreRequest):
         "counterparty_email": req.counterparty_email,
         **req.known_signals,
     }
-    result = ai_engine.score_trust(signals)
+    try:
+        result = ai_engine.score_trust(signals)
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"AI error: {e}")
     return {
         "counterparty_email": req.counterparty_email,
         "signals_used": signals,
