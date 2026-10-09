@@ -57,8 +57,6 @@ python seed_sandbox.py status
 python seed_sandbox.py capture ORDER_ID
 ```
 
-The orders show up as one-click chips in the Verification Shield panel.
-
 ## PayPal integration details
 
 - **Orders API** (`/v2/checkout/orders/{id}`) — pulls real-time order status for Verification Shield to compare against user claims.

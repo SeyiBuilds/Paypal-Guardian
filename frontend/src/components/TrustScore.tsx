@@ -1,13 +1,6 @@
 import { useState } from "react";
 import { api, type TrustResult } from "../api";
 
-const PRESETS = [
-  { label: "Brand new account", email: "newseller123@gmail.com", age: "2 days", txns: "0" },
-  { label: "Repeat client", email: "returning.client@example.com", age: "3 years", txns: "12" },
-];
-
-const RISK_COLOR = { low: "var(--ok)", medium: "var(--warn)", high: "var(--bad)" };
-
 export default function TrustScore() {
   const [email, setEmail] = useState("");
   const [accountAge, setAccountAge] = useState("");
@@ -19,7 +12,6 @@ export default function TrustScore() {
   async function handleCheck() {
     setLoading(true);
     setError("");
-    setResult(null);
     try {
       const res = await api.trustScore(email, {
         claimed_account_age: accountAge || "unknown",
@@ -33,73 +25,46 @@ export default function TrustScore() {
     }
   }
 
-  const risk = result?.result.risk_level;
+  const riskColor = { low: "#16a34a", medium: "#d97706", high: "#dc2626" };
 
   return (
-    <section className="panel">
-      <div className="panel-tag">02 / Assess</div>
+    <div className="panel">
       <h2>Pre-Payment Trust Score</h2>
-      <p className="subtitle">Check the risk before you send money to someone new.</p>
-
-      <div className="chips">
-        {PRESETS.map((p) => (
-          <button
-            key={p.label}
-            type="button"
-            className="chip"
-            onClick={() => {
-              setEmail(p.email);
-              setAccountAge(p.age);
-              setPriorTxns(p.txns);
-              setResult(null);
-            }}
-          >
-            {p.label}
-          </button>
-        ))}
-      </div>
+      <p className="subtitle">Check risk before sending money to a new counterparty</p>
 
       <input
         placeholder="Counterparty PayPal email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
       />
-      <div className="row">
-        <input
-          placeholder="Account age, e.g. 2 weeks"
-          value={accountAge}
-          onChange={(e) => setAccountAge(e.target.value)}
-        />
-        <input
-          placeholder="Prior txns with you"
-          value={priorTxns}
-          onChange={(e) => setPriorTxns(e.target.value)}
-        />
-      </div>
+      <input
+        placeholder="Account age (if known, e.g. '2 weeks')"
+        value={accountAge}
+        onChange={(e) => setAccountAge(e.target.value)}
+      />
+      <input
+        placeholder="Prior transactions with you (if any)"
+        value={priorTxns}
+        onChange={(e) => setPriorTxns(e.target.value)}
+      />
       <button onClick={handleCheck} disabled={loading || !email}>
         {loading ? "Analyzing..." : "Check Trust Score"}
       </button>
 
       {error && <div className="error">{error}</div>}
 
-      {result && risk && (
-        <div className="result-card" style={{ borderColor: RISK_COLOR[risk] }}>
+      {result && (
+        <div className="result-card" style={{ borderColor: riskColor[result.result.risk_level] }}>
           <div className="result-header">
-            <span className="risk-label" style={{ color: RISK_COLOR[risk] }}>
-              {risk.toUpperCase()} RISK
+            <span style={{ color: riskColor[result.result.risk_level] }}>
+              {result.result.risk_level.toUpperCase()} RISK
             </span>
-            <span className="confidence">{result.result.score}/100</span>
-          </div>
-          <div className="meter">
-            <div
-              className="meter-fill"
-              style={{ width: `${result.result.score}%`, background: RISK_COLOR[risk] }}
-            />
+            <span className="confidence">score: {result.result.score}/100</span>
           </div>
           <p>{result.result.reasoning}</p>
-          <div className="recommendation">Recommendation: {result.result.recommendation}</div>
+          <div className="recommendation">→ {result.result.recommendation}</div>
         </div>
       )}
-    </section>
+    </div>
   );
 }

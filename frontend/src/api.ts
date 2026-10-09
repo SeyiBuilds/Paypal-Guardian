@@ -25,23 +25,8 @@ export interface TrustResult {
 
 export interface Subscription {
   merchant: string;
-  amount: string | null;
-  currency: string | null;
   charge_count: number;
-  last_charged: string | null;
-}
-
-export interface RadarResponse {
-  subscriptions: Subscription[];
-  window_days?: number;
-  transactions_scanned?: number;
-  error?: string;
-}
-
-export interface DemoOrder {
-  id: string;
-  description: string;
-  amount: string;
+  charges: { value: string; currency_code: string }[];
 }
 
 async function post<T>(path: string, body: unknown): Promise<T> {
@@ -70,9 +55,6 @@ export const api = {
   trustScore: (counterparty_email: string, known_signals: Record<string, unknown>) =>
     post<TrustResult>("/api/trust-score", { counterparty_email, known_signals }),
 
-  subscriptionRadar: () => get<RadarResponse>("/api/subscription-radar"),
-
-  demoOrders: () => get<{ orders: DemoOrder[] }>("/api/demo-orders"),
-
-  health: () => get<{ status: string }>("/health"),
+  subscriptionRadar: () =>
+    get<{ subscriptions: Subscription[]; window_days: number }>("/api/subscription-radar"),
 };

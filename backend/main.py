@@ -3,8 +3,6 @@ PayPal Guardian — backend
 Three modules: Verification Shield, Pre-Payment Trust Score, Subscription Radar.
 """
 import os
-import json
-from pathlib import Path
 from datetime import datetime, timedelta
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -192,15 +190,6 @@ async def subscription_radar():
         "window_days": 90,
         "transactions_scanned": len(txns),
     }
-
-
-@app.get("/api/demo-orders")
-async def demo_orders():
-    """Sandbox orders created by seed_sandbox.py, used for one-click demo chips."""
-    path = Path(__file__).parent / "seed_orders.json"
-    if not path.exists():
-        return {"orders": []}
-    return {"orders": json.loads(path.read_text())}
 
 
 @app.get("/health")
