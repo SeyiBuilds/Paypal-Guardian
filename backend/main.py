@@ -3,7 +3,10 @@ PayPal Guardian — backend
 Three modules: Verification Shield, Pre-Payment Trust Score, Subscription Radar.
 """
 import os
-from datetime import datetime, timedelta
+import re
+import asyncio
+import httpx
+from datetime import datetime, timedelta, timezone
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -28,6 +31,8 @@ webhook_events: list[dict] = []
 verification_log: list[dict] = []
 
 WEBHOOK_ID = os.getenv("PAYPAL_WEBHOOK_ID", "")
+ORDER_ID_RE = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
+MAX_STORED = 500
 
 
 # ---------- Module 1: Verification Shield ----------
@@ -43,13 +48,18 @@ async def verify_claim(req: VerifyClaimRequest):
     User pastes a claimed payment (screenshot text, description, etc).
     We pull the REAL order from PayPal and ask AI to compare.
     """
+    if not ORDER_ID_RE.match(req.order_id):
+        raise HTTPException(status_code=422, detail="Invalid order_id")
     try:
         actual = await paypal_client.get_order(req.order_id)
+    except httpx.HTTPStatusError as e:
+        code = 404 if e.response.status_code == 404 else 502
+        raise HTTPException(status_code=code, detail=f"PayPal error: {e}")
     except Exception as e:
-        raise HTTPException(status_code=404, detail=f"Order not found in PayPal: {e}")
+        raise HTTPException(status_code=502, detail=f"PayPal error: {e}")
 
     try:
-        result = ai_engine.verify_payment_claim(req.claimed_text, actual)
+        result = await asyncio.to_thread(ai_engine.verify_payment_claim, req.claimed_text, actual)
     except Exception as e:
         raise HTTPException(status_code=502, detail=f"AI error: {e}")
     entry = {
@@ -57,9 +67,10 @@ async def verify_claim(req: VerifyClaimRequest):
         "claimed_text": req.claimed_text,
         "actual_status": actual.get("status"),
         "result": result,
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
     }
     verification_log.append(entry)
+    del verification_log[:-MAX_STORED]
     return entry
 
 
@@ -82,17 +93,18 @@ async def paypal_webhook(request: Request):
     if WEBHOOK_ID:
         try:
             verification = await paypal_client.verify_webhook_signature(headers, body, WEBHOOK_ID)
-            if verification.get("verification_status") != "SUCCESS":
-                raise HTTPException(status_code=400, detail="Webhook signature invalid")
         except Exception:
-            pass  # in sandbox dev, signature verify can be flaky — log but don't hard-fail demo
+            raise HTTPException(status_code=502, detail="Webhook verification unavailable")
+        if verification.get("verification_status") != "SUCCESS":
+            raise HTTPException(status_code=400, detail="Webhook signature invalid")
 
     event = {
         "event_type": body.get("event_type"),
         "resource": body.get("resource"),
-        "received_at": datetime.utcnow().isoformat(),
+        "received_at": datetime.now(timezone.utc).isoformat(),
     }
     webhook_events.append(event)
+    del webhook_events[:-MAX_STORED]
     return {"status": "received"}
 
 
@@ -116,14 +128,14 @@ async def trust_score(req: TrustScoreRequest):
         **req.known_signals,
     }
     try:
-        result = ai_engine.score_trust(signals)
+        result = await asyncio.to_thread(ai_engine.score_trust, signals)
     except Exception as e:
         raise HTTPException(status_code=502, detail=f"AI error: {e}")
     return {
         "counterparty_email": req.counterparty_email,
         "signals_used": signals,
         "result": result,
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 
 
@@ -136,7 +148,7 @@ async def subscription_radar():
     Simple logic, not deep AI — matches its 'light panel' role.
     """
     # PayPal Transaction Search allows at most 31 days per request, so chunk 90 days
-    end = datetime.utcnow()
+    end = datetime.now(timezone.utc)
     txns: list[dict] = []
     try:
         for i in range(3):
