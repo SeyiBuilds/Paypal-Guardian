@@ -141,6 +141,35 @@ async def trust_score(req: TrustScoreRequest):
 
 # ---------- Module 3: Subscription Radar (lighter, less AI-heavy) ----------
 
+def _parse_date(value):
+    if not value:
+        return None
+    for fmt in ("%Y-%m-%dT%H:%M:%S%z", "%Y-%m-%dT%H:%M:%SZ"):
+        try:
+            d = datetime.strptime(str(value), fmt)
+            return d if d.tzinfo else d.replace(tzinfo=timezone.utc)
+        except ValueError:
+            continue
+    return None
+
+
+def _frequency(dates):
+    """Label a charge series by its typical gap. Returns (label, next_expected_iso)."""
+    if len(dates) < 2:
+        return "Repeat", None
+    gaps = sorted((b - a).total_seconds() / 86400 for a, b in zip(dates, dates[1:]))
+    median = gaps[len(gaps) // 2]
+    for label, lo, hi, step in (
+        ("Weekly", 6, 8, 7),
+        ("Monthly", 25, 35, 30),
+        ("Yearly", 350, 380, 365),
+    ):
+        if lo <= median <= hi:
+            return label, (dates[-1] + timedelta(days=step)).date().isoformat()
+    return "Repeat", None
+
+
+
 @app.get("/api/subscription-radar")
 async def subscription_radar():
     """
@@ -166,37 +195,57 @@ async def subscription_radar():
             detail = f"{resp.status_code}: {resp.text[:300]}"
         return {"error": f"Transaction Search failed ({detail})", "subscriptions": []}
 
-    # group by (payer, amount): same person paying the same amount repeatedly
+    # Group by (counterparty, amount, currency). Outgoing charges (negative amounts)
+    # are labelled by the merchant; incoming ones by the payer.
     groups: dict[tuple, dict] = {}
     for t in txns:
         info = t.get("transaction_info") or {}
         payer = t.get("payer_info") or {}
+        ship = t.get("shipping_info") or {}
         amount = info.get("transaction_amount") or {}
-        name = (
+        raw = str(amount.get("value") or "")
+        outgoing = raw.startswith("-")
+        payer_name = (
             (payer.get("payer_name") or {}).get("alternate_full_name")
             or payer.get("email_address")
-            or "Unknown"
         )
-        key = (name, amount.get("value"), amount.get("currency_code"))
+        if outgoing:
+            name = ship.get("name") or info.get("transaction_subject") or payer_name or "Unknown"
+        else:
+            name = payer_name or "Unknown"
+        value = raw.lstrip("-")
+        key = (name, value, amount.get("currency_code"), outgoing)
         g = groups.setdefault(
             key,
             {
                 "merchant": name,
-                "amount": amount.get("value"),
+                "amount": value,
                 "currency": amount.get("currency_code"),
+                "direction": "outgoing" if outgoing else "incoming",
                 "charge_count": 0,
                 "last_charged": None,
+                "_dates": [],
             },
         )
         g["charge_count"] += 1
         date = info.get("transaction_initiation_date")
+        dt = _parse_date(date)
+        if dt:
+            g["_dates"].append(dt)
         if date and (g["last_charged"] is None or str(date) > str(g["last_charged"])):
             g["last_charged"] = date
 
-    recurring = sorted(
-        (g for g in groups.values() if g["charge_count"] > 1),
-        key=lambda g: -g["charge_count"],
-    )
+    recurring = []
+    for g in groups.values():
+        if g["charge_count"] < 2:
+            continue
+        dates = sorted(g.pop("_dates"))
+        freq, nxt = _frequency(dates)
+        g["frequency"] = freq
+        g["next_expected"] = nxt
+        recurring.append(g)
+    order = {"Monthly": 0, "Weekly": 1, "Yearly": 2, "Repeat": 3}
+    recurring.sort(key=lambda g: (order.get(g["frequency"], 3), -g["charge_count"]))
     return {
         "subscriptions": recurring,
         "window_days": 90,

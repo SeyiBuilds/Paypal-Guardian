@@ -76,7 +76,9 @@ export default function SubscriptionRadar() {
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium">{s.merchant}</p>
                   <p className="text-xs text-muted-foreground">
-                    {s.charge_count} charges{s.last_charged ? `, last on ${fmtDate(s.last_charged)}` : ""}
+                    {s.frequency ?? "Repeat"}, {s.charge_count} charges
+                    {s.last_charged ? `, last ${fmtDate(s.last_charged)}` : ""}
+                    {s.next_expected ? `, next ~${fmtDate(s.next_expected)}` : ""}
                   </p>
                 </div>
                 <Badge variant="secondary" className="tabular-nums">

@@ -103,7 +103,7 @@ Use the order IDs from the seed script.
 | `newseller123@gmail.com` | `2 days` | `0` | High risk |
 | `client@example.com` | `3 years` | `12` | Low or medium risk |
 
-**Subscription Radar** loads on its own and lists repeat charges from the last 90 days. The two $75 retainer captures should show as one recurring charge. Sandbox history can lag by a few hours, and **Transaction Search** must be enabled on your app (Features section, tick it, save).
+**Subscription Radar** loads on its own and lists repeat charges from the last 90 days with a frequency label. The two $75 retainer captures should show as one repeat charge. Sandbox history can lag by a few hours, and **Transaction Search** must be enabled on your app (Features section, tick it, save).
 
 ## Webhooks (optional)
 
@@ -138,7 +138,7 @@ With a Webhook ID set, events are checked via PayPal's `verify-webhook-signature
 
 ## Limitations
 
-In-memory storage (resets on restart). Trust scores rely on user-supplied signals because sandbox accounts expose limited history. Radar infers recurrence from repeat payers and amounts, not billing agreements. CORS is open for local development and should be restricted before deploying.
+In-memory storage (resets on restart). Trust scores rely on user-supplied signals because sandbox accounts expose limited history. Radar infers subscriptions from repeat charges (same merchant or payer, amount and currency) and labels the rhythm (monthly, weekly, yearly). It does not read PayPal billing agreements and only sees PayPal activity. CORS is open for local development and should be restricted before deploying.
 
 ## License
 

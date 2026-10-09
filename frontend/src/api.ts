@@ -29,6 +29,9 @@ export interface Subscription {
   currency: string | null;
   charge_count: number;
   last_charged: string | null;
+  direction?: "incoming" | "outgoing";
+  frequency?: "Monthly" | "Weekly" | "Yearly" | "Repeat";
+  next_expected?: string | null;
 }
 
 export interface RadarResponse {
