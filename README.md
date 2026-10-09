@@ -15,7 +15,7 @@ Payment anxiety is real and mostly unsolved: fake payment proof scams, no way to
 ## Tech stack
 
 - **PayPal**: REST API (Orders, Transaction Search, Webhooks) via sandbox
-- **AI**: Groq (Llama 3.3 70B) for verification reasoning and risk scoring
+- **AI**: Groq (configurable via GROQ_MODEL, e.g. openai/gpt-oss-120b) for verification reasoning and risk scoring
 - **Backend**: FastAPI (Python)
 - **Frontend**: React + TypeScript + Vite
 
@@ -31,6 +31,7 @@ pip install -r requirements.txt
 cp .env.example .env
 # fill in PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET from developer.paypal.com/dashboard
 # fill in GROQ_API_KEY from console.groq.com (free tier)
+# set GROQ_MODEL to a chat model your key can use (run: python list_models.py)
 uvicorn main:app --reload --port 8000
 ```
 
@@ -43,7 +44,20 @@ cp .env.example .env
 npm run dev
 ```
 
-Open `http://localhost:5173`.
+Open the URL Vite prints (default `http://localhost:5173`; Vite picks the next free port if that one is taken).
+
+If port 8000 is busy, run the backend on another port and set `VITE_API_BASE` in `frontend/.env` to match.
+
+### Optional: demo data
+
+```bash
+cd backend
+python seed_sandbox.py create    # creates 4 sandbox orders in different states
+python seed_sandbox.py status
+python seed_sandbox.py capture ORDER_ID
+```
+
+The orders show up as one-click chips in the Verification Shield panel.
 
 ## PayPal integration details
 
@@ -53,7 +67,7 @@ Open `http://localhost:5173`.
 
 ## AI integration details
 
-Groq (Llama 3.3 70B) powers two reasoning tasks:
+Groq (default openai/gpt-oss-120b, set with GROQ_MODEL) powers two reasoning tasks:
 - Comparing a user's claimed payment text against actual PayPal order data, returning a verified/flagged verdict with reasoning.
 - Scoring counterparty risk from available signals (account age, prior transaction history) before a payment is sent.
 
