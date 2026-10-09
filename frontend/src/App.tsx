@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react"
-import { ShieldCheck } from "lucide-react"
 import VerificationShield from "@/components/VerificationShield"
 import TrustScore from "@/components/TrustScore"
 import SubscriptionRadar from "@/components/SubscriptionRadar"
@@ -18,9 +17,7 @@ export default function App() {
     <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-4 py-8 sm:px-6 lg:py-12">
       <header className="mb-10 flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <div className="flex size-12 items-center justify-center rounded-xl border bg-primary/10 text-primary">
-            <ShieldCheck className="size-6" />
-          </div>
+          <img src="/favicon.svg" alt="" className="size-12 rounded-xl" />
           <div>
             <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">PayPal Guardian</h1>
             <p className="text-sm text-muted-foreground">
