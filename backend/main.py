@@ -3,6 +3,8 @@ PayPal Guardian — backend
 Three modules: Verification Shield, Pre-Payment Trust Score, Subscription Radar.
 """
 import os
+import json
+from pathlib import Path
 from datetime import datetime, timedelta
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -135,30 +137,70 @@ async def subscription_radar():
     Pull recent transactions, group by merchant to approximate recurring charges.
     Simple logic, not deep AI — matches its 'light panel' role.
     """
+    # PayPal Transaction Search allows at most 31 days per request, so chunk 90 days
     end = datetime.utcnow()
-    start = end - timedelta(days=90)
+    txns: list[dict] = []
     try:
-        data = await paypal_client.get_transaction_history(
-            start.strftime("%Y-%m-%dT00:00:00-0000"),
-            end.strftime("%Y-%m-%dT23:59:59-0000"),
-        )
+        for i in range(3):
+            w_end = end - timedelta(days=30 * i)
+            w_start = w_end - timedelta(days=30)
+            data = await paypal_client.get_transaction_history(
+                w_start.strftime("%Y-%m-%dT%H:%M:%S-0000"),
+                w_end.strftime("%Y-%m-%dT%H:%M:%S-0000"),
+            )
+            txns.extend(data.get("transaction_details", []))
     except Exception as e:
-        return {"error": str(e), "subscriptions": []}
+        detail = str(e)
+        resp = getattr(e, "response", None)
+        if resp is not None:
+            detail = f"{resp.status_code}: {resp.text[:300]}"
+        return {"error": f"Transaction Search failed ({detail})", "subscriptions": []}
 
-    txns = data.get("transaction_details", [])
-    merchants: dict[str, list] = {}
+    # group by (payer, amount): same person paying the same amount repeatedly
+    groups: dict[tuple, dict] = {}
     for t in txns:
         info = t.get("transaction_info", {})
         payer = t.get("payer_info", {})
-        merchant = payer.get("payer_name", {}).get("alternate_full_name") or "Unknown"
-        merchants.setdefault(merchant, []).append(info.get("transaction_amount", {}))
+        amount = info.get("transaction_amount", {})
+        name = (
+            payer.get("payer_name", {}).get("alternate_full_name")
+            or payer.get("email_address")
+            or "Unknown"
+        )
+        key = (name, amount.get("value"), amount.get("currency_code"))
+        g = groups.setdefault(
+            key,
+            {
+                "merchant": name,
+                "amount": amount.get("value"),
+                "currency": amount.get("currency_code"),
+                "charge_count": 0,
+                "last_charged": None,
+            },
+        )
+        g["charge_count"] += 1
+        date = info.get("transaction_initiation_date")
+        if date and (g["last_charged"] is None or date > g["last_charged"]):
+            g["last_charged"] = date
 
-    recurring = [
-        {"merchant": m, "charge_count": len(charges), "charges": charges}
-        for m, charges in merchants.items()
-        if len(charges) > 1  # appeared more than once = likely recurring
-    ]
-    return {"subscriptions": recurring, "window_days": 90}
+    recurring = sorted(
+        (g for g in groups.values() if g["charge_count"] > 1),
+        key=lambda g: -g["charge_count"],
+    )
+    return {
+        "subscriptions": recurring,
+        "window_days": 90,
+        "transactions_scanned": len(txns),
+    }
+
+
+@app.get("/api/demo-orders")
+async def demo_orders():
+    """Sandbox orders created by seed_sandbox.py, used for one-click demo chips."""
+    path = Path(__file__).parent / "seed_orders.json"
+    if not path.exists():
+        return {"orders": []}
+    return {"orders": json.loads(path.read_text())}
 
 
 @app.get("/health")

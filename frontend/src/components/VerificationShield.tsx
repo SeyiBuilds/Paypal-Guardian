@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { api, type VerifyResult } from "../api";
+import { useEffect, useState } from "react";
+import { api, type DemoOrder, type VerifyResult } from "../api";
 
 export default function VerificationShield() {
   const [orderId, setOrderId] = useState("");
@@ -7,13 +7,31 @@ export default function VerificationShield() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<VerifyResult | null>(null);
   const [error, setError] = useState("");
+  const [demo, setDemo] = useState<DemoOrder[]>([]);
+  const [feed, setFeed] = useState<VerifyResult[]>([]);
+
+  async function refreshFeed() {
+    try {
+      const res = await api.getVerificationFeed();
+      setFeed(res.events.slice(0, 5));
+    } catch {
+      /* feed is optional */
+    }
+  }
+
+  useEffect(() => {
+    api.demoOrders().then((r) => setDemo(r.orders)).catch(() => {});
+    refreshFeed();
+  }, []);
 
   async function handleVerify() {
     setLoading(true);
     setError("");
+    setResult(null);
     try {
-      const res = await api.verifyClaim(claimText, orderId);
+      const res = await api.verifyClaim(claimText, orderId.trim());
       setResult(res);
+      refreshFeed();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Verification failed");
     } finally {
@@ -21,10 +39,28 @@ export default function VerificationShield() {
     }
   }
 
+  function fill(o: DemoOrder) {
+    setOrderId(o.id);
+    setClaimText(`I paid $${o.amount} for ${o.description.split(",")[0].toLowerCase()}`);
+    setResult(null);
+    setError("");
+  }
+
   return (
-    <div className="panel">
+    <section className="panel">
+      <div className="panel-tag">01 / Verify</div>
       <h2>Verification Shield</h2>
-      <p className="subtitle">Paste a claimed payment, we check it against real PayPal data</p>
+      <p className="subtitle">Paste a claimed payment. We check it against the real PayPal order.</p>
+
+      {demo.length > 0 && (
+        <div className="chips">
+          {demo.map((o, i) => (
+            <button key={o.id} type="button" className="chip" onClick={() => fill(o)}>
+              {i + 1}. ${o.amount}
+            </button>
+          ))}
+        </div>
+      )}
 
       <input
         placeholder="PayPal Order ID"
@@ -32,10 +68,10 @@ export default function VerificationShield() {
         onChange={(e) => setOrderId(e.target.value)}
       />
       <textarea
-        placeholder="Paste the claim (e.g. screenshot text, 'payment of $500 completed')"
+        placeholder="What was claimed, e.g. 'I paid you $150 for the logo'"
+        rows={3}
         value={claimText}
         onChange={(e) => setClaimText(e.target.value)}
-        rows={3}
       />
       <button onClick={handleVerify} disabled={loading || !orderId || !claimText}>
         {loading ? "Checking..." : "Verify Claim"}
@@ -46,13 +82,28 @@ export default function VerificationShield() {
       {result && (
         <div className={`result-card ${result.result.verified ? "verified" : "flagged"}`}>
           <div className="result-header">
-            {result.result.verified ? "Verified" : "Flagged"}
+            <span className={`pill ${result.result.verified ? "pill-ok" : "pill-bad"}`}>
+              {result.result.verified ? "Verified" : "Flagged"}
+            </span>
             <span className="confidence">confidence: {result.result.confidence}</span>
           </div>
           <p>{result.result.reasoning}</p>
-          <div className="meta">actual status: {result.actual_status}</div>
+          <div className="meta">PayPal status: {result.actual_status}</div>
         </div>
       )}
-    </div>
+
+      {feed.length > 0 && (
+        <div className="feed">
+          <div className="feed-title">Recent checks</div>
+          {feed.map((f, i) => (
+            <div key={i} className="feed-row">
+              <span className={`dot ${f.result.verified ? "dot-ok" : "dot-bad"}`} />
+              <span className="feed-id">{f.order_id}</span>
+              <span className="feed-status">{f.actual_status}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
   );
 }
