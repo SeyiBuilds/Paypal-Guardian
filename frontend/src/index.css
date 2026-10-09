@@ -158,3 +158,27 @@ html[data-theme="sand"] [data-slot="card"] {
   --warning: #fbbf24;
   --destructive: #ff8a7a;
 }
+
+/* Graphite and Teal: 60% charcoal page, 30% slate-gray surfaces, 10% teal accent. Try ?theme=graphite */
+html[data-theme="graphite"] {
+  color-scheme: dark;
+  --background: #121417;
+  --foreground: #eceff2;
+  --card: #1b2026;
+  --card-foreground: #eceff2;
+  --secondary: #252c34;
+  --secondary-foreground: #eceff2;
+  --muted: #252c34;
+  --muted-foreground: #96a1ad;
+  --accent: #252c34;
+  --accent-foreground: #eceff2;
+  --border: #2c343d;
+  --input: #3a444f;
+  --primary: #19c7bd;
+  --primary-foreground: #06201e;
+  --ring: #19c7bd;
+  --success: #4ade80;
+  --warning: #fbbf24;
+  --destructive: #f87171;
+  --glow: rgb(25 199 189 / 0.10);
+}
