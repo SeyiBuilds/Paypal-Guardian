@@ -1,5 +1,5 @@
 """
-AI reasoning layer — Groq (Llama 3.3 70B) powers Verification Shield and Trust Score.
+AI reasoning layer. Groq powers Verification Shield and Trust Score.
 """
 import os
 import json
@@ -14,7 +14,7 @@ def _get_client() -> Groq:
     if _client is None:
         api_key = os.getenv("GROQ_API_KEY")
         if not api_key:
-            raise RuntimeError("GROQ_API_KEY not set — add it to backend/.env")
+            raise RuntimeError("GROQ_API_KEY not set, add it to backend/.env")
         _client = Groq(api_key=api_key)
     return _client
 
@@ -55,7 +55,7 @@ def score_trust(counterparty_signals: dict) -> dict:
     Used by Pre-Payment Trust Score module.
     """
     prompt = f"""You are a payment risk analyst. Assess the risk of sending money to this
-PayPal counterparty based on the signals below. Be conservative — when signals are
+PayPal counterparty based on the signals below. Be conservative, when signals are
 thin or missing, that itself raises risk (new/unverified accounts are higher risk).
 
 COUNTERPARTY SIGNALS:
