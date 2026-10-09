@@ -157,11 +157,11 @@ async def subscription_radar():
     # group by (payer, amount): same person paying the same amount repeatedly
     groups: dict[tuple, dict] = {}
     for t in txns:
-        info = t.get("transaction_info", {})
-        payer = t.get("payer_info", {})
-        amount = info.get("transaction_amount", {})
+        info = t.get("transaction_info") or {}
+        payer = t.get("payer_info") or {}
+        amount = info.get("transaction_amount") or {}
         name = (
-            payer.get("payer_name", {}).get("alternate_full_name")
+            (payer.get("payer_name") or {}).get("alternate_full_name")
             or payer.get("email_address")
             or "Unknown"
         )
@@ -178,7 +178,7 @@ async def subscription_radar():
         )
         g["charge_count"] += 1
         date = info.get("transaction_initiation_date")
-        if date and (g["last_charged"] is None or date > g["last_charged"]):
+        if date and (g["last_charged"] is None or str(date) > str(g["last_charged"])):
             g["last_charged"] = date
 
     recurring = sorted(
