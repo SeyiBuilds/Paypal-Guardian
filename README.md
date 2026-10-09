@@ -7,7 +7,7 @@ Guardian sits on top of live PayPal sandbox data and answers three questions peo
 | Module | The question it answers | PayPal API used | AI role |
 | --- | --- | --- | --- |
 | **Verification Shield** | "Did this person really pay me?" | Orders v2, Webhooks | Compares a pasted payment claim against the real order and returns Verified or Flagged with reasoning |
-| **Pre-Payment Trust Score** | "Is it safe to send money to this person?" | OAuth, account signals | Scores counterparty risk from 0 to 100 and gives a plain-language recommendation |
+| **Pre-Payment Trust Score** | "Is it safe to send money to this person?" | None directly (uses signals supplied by the user) | Scores counterparty risk from 0 to 100 and gives a plain-language recommendation |
 | **Subscription Radar** | "What is quietly charging me?" | Transaction Search | None (deterministic grouping of repeat charges) |
 
 ## Why this matters
@@ -154,9 +154,9 @@ Use the order IDs printed by the seed script. These inputs show each outcome:
 | Email | Account age | Prior transactions | Expected result |
 | --- | --- | --- | --- |
 | `newseller123@gmail.com` | `2 days` | `0` | High risk |
-| `client@example.com` | `3 years` | `12` | Low risk |
+| `client@example.com` | `3 years` | `12` | Low or medium risk |
 
-**Subscription Radar** loads automatically. It lists payers who made repeated charges of the same amount in the last 90 days. With the seed data, the two $75 retainer captures appear as one recurring charge. PayPal sandbox history can take up to a few hours to show new transactions, and the app needs the **Transaction Search** feature enabled (see below).
+**Subscription Radar** loads automatically. It lists payers who made repeated charges of the same amount in the last 90 days. With the seed data, the two $75 retainer captures should appear as one recurring charge. PayPal sandbox history can take up to a few hours to show new transactions, and the app needs the **Transaction Search** feature enabled (see below).
 
 ## Optional setup
 
