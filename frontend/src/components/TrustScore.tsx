@@ -66,13 +66,17 @@ export default function TrustScore() {
             onChange={(e) => setEmail(e.target.value)}
           />
         </div>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="age">Account age (if known)</Label>
+            <Label htmlFor="age">
+              Account age <span className="text-xs font-normal text-muted-foreground">(if known)</span>
+            </Label>
             <Input id="age" placeholder="e.g. 2 weeks" value={accountAge} onChange={(e) => setAccountAge(e.target.value)} />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="txns">Prior transactions (if known)</Label>
+            <Label htmlFor="txns">
+              Prior transactions <span className="text-xs font-normal text-muted-foreground">(if known)</span>
+            </Label>
             <Input id="txns" placeholder="e.g. 0" value={priorTxns} onChange={(e) => setPriorTxns(e.target.value)} />
           </div>
         </div>
