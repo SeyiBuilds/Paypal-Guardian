@@ -26,6 +26,7 @@
 }
 
 .dark {
+  color-scheme: dark;
   --background: oklch(0.145 0.015 255);
   --foreground: oklch(0.96 0.005 255);
   --card: oklch(0.185 0.018 255);
@@ -81,4 +82,16 @@
     background-image: radial-gradient(900px 420px at 12% -8%, oklch(0.66 0.17 250 / 0.12), transparent 60%);
     background-attachment: fixed;
   }
+}
+
+/* Keep inputs dark with light text when the browser autofills or suggests values */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--foreground);
+  caret-color: var(--foreground);
+  box-shadow: 0 0 0 1000px oklch(0.2 0.02 255) inset;
+  transition: background-color 9999s ease-in-out 0s;
 }
