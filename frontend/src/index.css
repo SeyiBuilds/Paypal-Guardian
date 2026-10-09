@@ -79,7 +79,7 @@
   }
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    background-image: radial-gradient(900px 420px at 12% -8%, oklch(0.66 0.17 250 / 0.12), transparent 60%);
+    background-image: radial-gradient(900px 420px at 12% -8%, var(--glow, oklch(0.66 0.17 250 / 0.12)), transparent 60%);
     background-attachment: fixed;
   }
 }
@@ -92,6 +92,69 @@ textarea:-webkit-autofill,
 textarea:-webkit-autofill:focus {
   -webkit-text-fill-color: var(--foreground);
   caret-color: var(--foreground);
-  box-shadow: 0 0 0 1000px oklch(0.2 0.02 255) inset;
+  box-shadow: 0 0 0 1000px var(--card) inset;
   transition: background-color 9999s ease-in-out 0s;
+}
+
+/* ---------- Optional palettes (60 / 30 / 10). Try with ?theme=violet or ?theme=sand ---------- */
+
+/* Violet Night: 60% near-black indigo, 30% deep violet surfaces, 10% violet accent */
+html[data-theme="violet"] {
+  color-scheme: dark;
+  --background: #0c0a14;
+  --foreground: #f1eefb;
+  --card: #17142a;
+  --card-foreground: #f1eefb;
+  --secondary: #221e3a;
+  --secondary-foreground: #f1eefb;
+  --muted: #221e3a;
+  --muted-foreground: #a8a0c9;
+  --accent: #221e3a;
+  --accent-foreground: #f1eefb;
+  --border: #2d2850;
+  --input: #3a3363;
+  --primary: #9168f7;
+  --primary-foreground: #ffffff;
+  --ring: #9168f7;
+  --success: #34d399;
+  --warning: #fbbf24;
+  --destructive: #f87171;
+  --glow: rgb(145 104 247 / 0.16);
+}
+
+/* Sand and Navy: 60% warm sand page, 30% navy cards, 10% coral accent */
+html[data-theme="sand"] {
+  color-scheme: light;
+  --background: #f5f1ea;
+  --foreground: #1b2438;
+  --card: #14213d;
+  --card-foreground: #eef2fa;
+  --secondary: #1d2f55;
+  --secondary-foreground: #eef2fa;
+  --muted: #e6dfd2;
+  --muted-foreground: #5b6780;
+  --accent: #e6dfd2;
+  --accent-foreground: #1b2438;
+  --border: #d9d0bf;
+  --input: #cfc5b1;
+  --primary: #ff6b4a;
+  --primary-foreground: #14213d;
+  --ring: #ff6b4a;
+  --success: #15803d;
+  --warning: #b45309;
+  --destructive: #c2410c;
+  --glow: rgb(255 107 74 / 0.12);
+}
+html[data-theme="sand"] [data-slot="card"] {
+  --background: #0f1a33;
+  --foreground: #eef2fa;
+  --muted-foreground: #9fb0cc;
+  --border: #2a3b5e;
+  --input: #3a4c72;
+  --accent: #1d2f55;
+  --accent-foreground: #eef2fa;
+  --muted: #1d2f55;
+  --success: #4ade80;
+  --warning: #fbbf24;
+  --destructive: #ff8a7a;
 }
