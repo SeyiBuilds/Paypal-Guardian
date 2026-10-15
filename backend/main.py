@@ -188,6 +188,11 @@ async def subscription_radar():
                 w_end.strftime("%Y-%m-%dT%H:%M:%S-0000"),
             )
             txns.extend(data.get("transaction_details", []))
+    except httpx.ConnectError:
+        return {
+            "error": "Cannot reach PayPal. Check your internet connection or DNS, then press Rescan.",
+            "subscriptions": [],
+        }
     except Exception as e:
         detail = str(e)
         resp = getattr(e, "response", None)
