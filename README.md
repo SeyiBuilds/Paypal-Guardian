@@ -1,5 +1,9 @@
 # PayPal Guardian
 
+<p align="center">
+  <img src="Screenshots/main-page.jpg" alt="PayPal Guardian main page showing the Verification Shield, Pre-Payment Trust Score and Subscription Radar modules" width="760">
+</p>
+
 An AI agent that removes payment anxiety. Built for the **Build What's Next with PayPal and AI** hackathon.
 
 Guardian runs on live PayPal sandbox data and answers three questions people worry about whenever money moves.
